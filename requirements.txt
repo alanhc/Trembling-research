@@ -6,3 +6,4 @@ tensorflow-datasets
 pydot
 graphviz
 pytz
+matplotlib

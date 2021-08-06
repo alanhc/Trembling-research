@@ -53,16 +53,16 @@ def generate_dataset(_from=0, _to=20, sampling_rate=30, repeat=1, d=0.5):
     print("num of freq combination", combination.shape)
     combination_onehot = tf.keras.utils.to_categorical(combination, num_classes=40)
     
-    
-    data = np.zeros(sampling_rate*6)
+    dataPoint_per_signal = sampling_rate*6
+    data = np.zeros(combination.shape[0]*dataPoint_per_signal)
 
     i=0
 
     for f1,f2 in combination:
         start = time.time()
         s = np_generate_signal([f1,f2],sampling_rate)
-        data = tf.concat((data, s), axis=0)
-
+        #data = tf.concat((data, s), axis=0)
+        data[ dataPoint_per_signal*i:dataPoint_per_signal*(i+1) ] =  s
 
         end = time.time()
 
@@ -70,13 +70,13 @@ def generate_dataset(_from=0, _to=20, sampling_rate=30, repeat=1, d=0.5):
         print("["+str(remain)+"]|t:"+str(round((end-start)*remain,2)), end="\r")
         i+=1
 
-    data = data[180:]
+    #data = data[180:]
     print(data.shape)
     
+
     return data, combination_onehot # X,y
 
-def generate_time_series_dataset(window_size = 60, shift = 10, _from=0, _to=20, sampling_rate=30, repeat=1, d=0.5):
- 
+def generate_time_series_dataset(window_size = 60, shift = 10, _from=0, _to=20, sampling_rate=30, repeat=1, d=0.5, dataPoint_per_signal=180):
     f1 = np.arange(_from,_to*2, d*2)
     f2 = np.arange(_from, _to*2, d*2)
 
@@ -88,28 +88,26 @@ def generate_time_series_dataset(window_size = 60, shift = 10, _from=0, _to=20, 
     combination = np.repeat(combination, repeat, axis=0)
     print("num of freq combination", combination.shape)
     combination_onehot = tf.keras.utils.to_categorical(combination, num_classes=40)
-    
-    
-    data = np.zeros(sampling_rate*6)
+
+
+
 
     i=0
+    data = np.zeros(combination.shape[0]*dataPoint_per_signal)
 
     for f1,f2 in combination:
         start = time.time()
         s = np_generate_signal([f1,f2],sampling_rate)
         s_window = sliding_window(data=s, window_size = window_size, shift = shift).flatten()
-        data = tf.concat((data, s_window), axis=0)
-
-
+        #data = tf.concat((data, s_window), axis=0)
+        _start = time.time()
+        #data = np.append(data, s_window, axis=0)
+        data[ dataPoint_per_signal*i:dataPoint_per_signal*(i+1) ] =  s_window
         end = time.time()
 
         remain = combination.shape[0]-i
-        print("["+str(remain)+"]|t:"+str(round((end-start)*remain,2)), end="\r")
+        print("["+str(remain)+"]|t:"+str(round((end-start)*remain,2)), end-start,end="\r")
         i+=1
-
-    data = data[180:]
-    print(data.shape)
-    
     return data, combination_onehot # X,y
 
 
